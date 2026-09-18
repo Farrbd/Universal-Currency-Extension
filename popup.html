@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مبدل ارز</title>
+  <style>
+    /* ===== فونت‌ها (آفلاین) ===== */
+    @font-face { font-family:"Vazirmatn"; font-weight:400; font-display:swap; src:url("fonts/Vazirmatn-Regular.woff2") format("woff2"); }
+    @font-face { font-family:"Vazirmatn"; font-weight:700; font-display:swap; src:url("fonts/Vazirmatn-Bold.woff2") format("woff2"); }
+    @font-face { font-family:"Inter"; font-weight:400; font-display:swap; src:url("fonts/inter-latin-400.woff2") format("woff2"); unicode-range:U+0000-00FF,U+2000-206F,U+20AC; }
+    @font-face { font-family:"Inter"; font-weight:700; font-display:swap; src:url("fonts/inter-latin-700.woff2") format("woff2"); unicode-range:U+0000-00FF,U+2000-206F,U+20AC; }
+    @font-face { font-family:"Inter"; font-weight:400; font-display:swap; src:url("fonts/inter-latin-ext-400.woff2") format("woff2"); unicode-range:U+0100-024F,U+1E00-1EFF,U+20A0-20C0; }
+    @font-face { font-family:"Inter"; font-weight:700; font-display:swap; src:url("fonts/inter-latin-ext-700.woff2") format("woff2"); unicode-range:U+0100-024F,U+1E00-1EFF,U+20A0-20C0; }
+
+    @property --beam { syntax:"<angle>"; inherits:false; initial-value:0deg; }
+
+    * { box-sizing:border-box; }
+    html, body { color-scheme: dark; }
+    body {
+      width: 336px; margin:0; padding:12px;
+      background:
+        radial-gradient(130% 80% at 88% -10%, rgba(45,212,191,.13), transparent 42%),
+        radial-gradient(120% 80% at 0% 112%, rgba(251,191,36,.09), transparent 46%),
+        #0b111c;
+      color:#e6edf5;
+      font-family:"Vazirmatn","Inter",Tahoma,sans-serif;
+      font-size:13px; line-height:1.7;
+    }
+    html[dir="ltr"] body { font-family:"Inter","Vazirmatn",system-ui,Tahoma,sans-serif; }
+
+    /* ===== انیمیشن ورود ===== */
+    @keyframes rise { from{opacity:0; transform:translateY(10px) scale(.985)} }
+    .rise { animation:rise .5s cubic-bezier(.22,.9,.3,1) backwards; }
+    .d1{animation-delay:.05s}.d2{animation-delay:.1s}.d3{animation-delay:.15s}
+    .d4{animation-delay:.2s}.d5{animation-delay:.25s}.d6{animation-delay:.3s}
+
+    /* ===== افکت Beam — نور چرخان دور کادر (نسخهٔ CSS خالص border-beam) ===== */
+    .beam { position:relative; }
+    .beam::before, .beam::after {
+      content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+    }
+    /* هالهٔ نرم پشت — تک‌رنگ فیروزه‌ای */
+    .beam::before {
+      background:conic-gradient(from var(--beam),
+        transparent 0turn .70turn, rgba(32,210,202,.5) .84turn, rgba(32,210,202,.32) .91turn, transparent .97turn);
+      filter:blur(9px); opacity:.55;
+      animation:beam 6s linear infinite;
+    }
+    /* خط نور روی خودِ لبه — همان یک رنگ */
+    .beam::after {
+      padding:1.4px;
+      background:conic-gradient(from var(--beam),
+        transparent 0turn .70turn, rgba(94,234,212,.95) .85turn, rgba(45,212,191,.8) .92turn, transparent .97turn);
+      -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor; mask-composite:exclude;
+      animation:beam 6s linear infinite;
+    }
+    /* وقتی اکستنشن خاموش است، نور می‌ایستد (مثل active=false در border-beam) */
+    .beam.paused::before, .beam.paused::after { animation-play-state:paused; opacity:.25; }
+    @keyframes beam { to { --beam:1turn; } }
+
+    /* ===== کارت پایه ===== */
+    .card {
+      position:relative;
+      background:linear-gradient(160deg, rgba(30,41,59,.75), rgba(19,28,43,.92));
+      border:1px solid rgba(148,163,184,.14);
+      border-radius:14px;
+      padding:10px 12px;
+      margin-bottom:9px;
+      transition:border-color .25s, transform .2s, box-shadow .25s;
+    }
+    .card:hover { border-color:rgba(148,163,184,.28); box-shadow:0 6px 22px rgba(0,0,0,.28); }
+
+    /* ===== هدر ===== */
+    .hero { display:flex; align-items:center; gap:10px; padding:2px 2px 10px; }
+    .logo { width:34px; height:34px; border-radius:10px; flex:none;
+      box-shadow:0 3px 14px rgba(45,212,191,.28); }
+    .titles { min-width:0; flex:1; }
+    h1 { font-size:13.5px; font-weight:800; margin:0; line-height:1.5;
+      overflow-wrap:anywhere; text-wrap:balance; color:#f4f7fb; }
+    .sub { font-size:10px; color:#7c8ea3; line-height:1.6; }
+
+    /* ===== ردیف‌ها ===== */
+    .row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .row .lbl { display:flex; align-items:center; gap:7px; font-weight:700; font-size:12px; flex:none; }
+    .row .lbl .ic { font-size:13px; }
+
+    /* کلید روشن/خاموش */
+    .switch { position:relative; display:inline-block; width:42px; height:24px; flex:none; }
+    .switch input { opacity:0; width:0; height:0; }
+    .slider {
+      position:absolute; cursor:pointer; inset:0;
+      background:#3b4a5f; border-radius:24px; transition:.25s;
+    }
+    .slider::before {
+      content:""; position:absolute; height:18px; width:18px;
+      right:3px; top:3px; background:#fff; border-radius:50%;
+      transition:.25s cubic-bezier(.3,1.4,.5,1);
+    }
+    html[dir="ltr"] .slider::before { right:auto; left:3px; }
+    .switch input:checked + .slider { background:#16a34a; box-shadow:0 0 14px rgba(52,211,153,.45); }
+    .switch input:checked + .slider::before { transform:translateX(-18px); }
+    html[dir="ltr"] .switch input:checked + .slider::before { transform:translateX(18px); }
+
+    /* سلکت‌ها */
+    select {
+      flex:1; min-width:0; padding:6px 8px; border-radius:9px;
+      border:1px solid rgba(148,163,184,.2); background:#0d1522; color:#e6edf5;
+      font-family:inherit; font-size:11.5px; cursor:pointer;
+      transition:border-color .2s, box-shadow .2s;
+    }
+    select:hover, select:focus { border-color:rgba(45,212,191,.55); outline:none;
+      box-shadow:0 0 0 3px rgba(45,212,191,.12); }
+    .target-row select { font-weight:700; color:#a7f3d0; }
+    .lang-row select { direction:ltr; text-align:left; }
+
+    /* ===== لیست نرخ‌ها ===== */
+    .rates-list { display:flex; flex-direction:column; gap:2px; margin:0 -4px; }
+    .rate-row {
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+      font-size:12px; padding:4.5px 8px; border-radius:9px;
+      transition:background .18s, transform .18s;
+      animation:rowIn .34s backwards;
+    }
+    @keyframes rowIn { from { opacity:0; transform:translateY(5px); } }
+    .rate-row:nth-child(1){animation-delay:.03s}.rate-row:nth-child(2){animation-delay:.06s}
+    .rate-row:nth-child(3){animation-delay:.09s}.rate-row:nth-child(4){animation-delay:.12s}
+    .rate-row:nth-child(5){animation-delay:.15s}.rate-row:nth-child(6){animation-delay:.18s}
+    .rate-row:nth-child(7){animation-delay:.21s}.rate-row:nth-child(8){animation-delay:.24s}
+    .rate-row:nth-child(9){animation-delay:.27s}.rate-row:nth-child(10){animation-delay:.3s}
+    .rate-row:hover { background:rgba(148,163,184,.08); transform:translateX(-2px); }
+    html[dir="ltr"] .rate-row:hover { transform:translateX(2px); }
+    .rate-row .name { color:#c3cedd; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .rate-row .code { color:#5f7186; font-size:9.5px; }
+    .rate-row .val { font-weight:800; color:#34d399; font-size:13px; direction:ltr; unicode-bidi:embed;
+      font-variant-numeric:tabular-nums; }
+    .rate-label { font-size:10px; color:#8296ac; text-align:center; margin-top:7px; font-weight:400; }
+    .rate-loading { font-size:12px; color:#8296ac; text-align:center; padding:10px 0; }
+
+    /* ===== مبدل سریع ===== */
+    .conv-title { font-size:11px; font-weight:800; color:#7dd3fc; margin-bottom:7px; }
+    .conv-row { display:flex; gap:6px; }
+    .conv-row input {
+      flex:1; min-width:0; padding:7px 9px; border-radius:9px; border:1px solid rgba(148,163,184,.2);
+      background:#0d1522; color:#e6edf5; font-family:inherit; font-size:13px;
+      direction:ltr; text-align:left; transition:border-color .2s, box-shadow .2s;
+    }
+    .conv-row input:focus { border-color:rgba(251,191,36,.6); outline:none; box-shadow:0 0 0 3px rgba(251,191,36,.12); }
+    .conv-row select { width:104px; flex:none; }
+    .conv-result {
+      margin-top:8px; font-size:16px; font-weight:800; color:#fbbf24;
+      text-align:center; direction:ltr; unicode-bidi:embed; min-height:22px;
+      font-variant-numeric:tabular-nums;
+    }
+    .conv-result.pop { animation:pop .38s cubic-bezier(.3,1.5,.5,1); }
+    @keyframes pop { 0%{ transform:scale(.92); opacity:.4 } 100%{ transform:none; opacity:1 } }
+    .conv-sub { font-size:9.5px; color:#5f7186; text-align:center; margin-top:2px; }
+
+    /* ===== اکشن‌ها ===== */
+    .meta { font-size:10px; color:#64748b; text-align:center; margin:2px 0 8px; }
+    .actions { display:flex; align-items:center; gap:7px; }
+    button {
+      flex:1; padding:8.5px; border:none; border-radius:10px;
+      background:linear-gradient(135deg,#18b45a,#128a44); color:#fff;
+      font-family:inherit; font-size:12px; font-weight:800; cursor:pointer;
+      transition:transform .15s, box-shadow .2s, filter .2s;
+      box-shadow:0 3px 12px rgba(22,163,74,.3);
+    }
+    button:hover { filter:brightness(1.08); box-shadow:0 5px 16px rgba(22,163,74,.42); }
+    button:active { transform:translateY(1px) scale(.985); }
+    button .ico { display:inline-block; }
+    button.loading .ico { animation:spin 1s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .manual { display:flex; gap:6px; margin-top:7px; }
+    .manual input {
+      flex:1; padding:7px; border-radius:9px; border:1px solid rgba(148,163,184,.2);
+      background:#16213a; color:#e6edf5; font-family:inherit; text-align:center; font-size:11.5px;
+    }
+    .manual button { flex:none; width:auto; margin:0; padding:7px 14px; background:#2c3b52; box-shadow:none; }
+    .manual button:hover { background:#38496a; }
+
+    .foot { display:flex; align-items:center; justify-content:center; gap:7px; margin-top:9px; }
+    .vpill {
+      font-size:9px; color:#5f7186; background:rgba(148,163,184,.09);
+      border:1px solid rgba(148,163,184,.16); border-radius:999px; padding:1px 9px;
+      direction:ltr; font-family:"Inter",sans-serif;
+    }
+    .hint { font-size:9.5px; color:#5b6b7e; text-align:center; margin-top:6px; line-height:1.9; }
+
+    ::-webkit-scrollbar { width:9px; }
+    ::-webkit-scrollbar-thumb { background:#24344c; border-radius:9px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation:none !important; transition:none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero rise">
+    <img class="logo" src="icons/icon48.png" alt="" />
+    <div class="titles">
+      <h1 id="title">…</h1>
+      <div class="sub" id="subtitle">…</div>
+    </div>
+  </header>
+
+  <div class="card row rise d1">
+    <span class="lbl"><span class="ic">🌐</span><span data-i18n="langLabel">زبان</span></span>
+    <select id="langSel">
+      <option value="auto" data-i18n="langAuto">خودکار</option>
+      <option value="fa">فارسی</option>
+      <option value="en">English</option>
+      <option value="es">Español</option>
+      <option value="de">Deutsch</option>
+      <option value="it">Italiano</option>
+      <option value="ro">Română</option>
+    </select>
+  </div>
+
+  <div class="card row rise d2">
+    <label class="lbl" for="enabledToggle" style="cursor:pointer" data-i18n="toggleShow">نمایش معادل روی قیمت‌ها</label>
+    <label class="switch">
+      <input type="checkbox" id="enabledToggle" checked />
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div class="card row target-row rise d3">
+    <span class="lbl"><span class="ic">🎯</span><span data-i18n="convertTo">تبدیل به:</span></span>
+    <select id="targetSel"></select>
+  </div>
+
+  <div class="card beam rise d4">
+    <div class="rates-list" id="rates">
+      <div class="rate-loading">…</div>
+    </div>
+    <div class="rate-label" id="rateLabel">—</div>
+  </div>
+
+  <div class="card beam rise d5">
+    <div class="conv-title" data-i18n="quickConv">🔄 مبدل سریع</div>
+    <div class="conv-row">
+      <input type="text" id="convAmount" value="100" inputmode="decimal" />
+      <select id="convFrom"></select>
+    </div>
+    <div class="conv-result" id="convResult">—</div>
+    <div class="conv-sub" id="convSub"></div>
+  </div>
+
+  <div class="rise d6">
+    <div class="meta" id="meta">…</div>
+    <div class="actions">
+      <button id="refresh"><span class="ico">🔄</span> <span data-i18n="refresh">به‌روزرسانی</span></button>
+    </div>
+    <div class="manual" id="manualRow">
+      <input type="number" id="manualInput" data-i18n-ph="manualPh" placeholder="…" />
+      <button id="setManual" data-i18n="set">ثبت</button>
+    </div>
+    <div class="foot">
+      <span class="vpill" id="verPill">v?</span>
+    </div>
+    <div class="hint" id="hintBox"></div>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
