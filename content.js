@@ -30,6 +30,8 @@
     toman: null,   // { currencies:{USD:2093000,…}, source, updatedAt }
     intl: null,    // { rates:{usd:1, eur:0.87, ron:4.56,…}, source, updatedAt }
     target: "IRT", // "IRT" = تومان ایران؛ یا هر کد ارز جهانی مثل "EUR" / "RON"
+    style: "compact",  // compact (پیشفرض — همیشه جا می‌شود) | badge | sub | hover
+    color: "green",  // green | teal | amber | neutral
     enabled: true
   };
 
@@ -90,7 +92,18 @@
     return null;
   }
 
+  function compactNum(v) {
+    try {
+      return v.toLocaleString(lang === "fa" ? "fa-IR" : "en-US",
+        { notation: "compact", maximumFractionDigits: 1 });
+    } catch (e) { return String(Math.round(v)); }
+  }
+
   function formatValue(v, target) {
+    // مدل فشرده: عدد کوتاه K/M/B — برای جاهای تنگ
+    if (state.style === "compact") {
+      return compactNum(v) + " " + (target === "IRT" ? t("tomanWord") : target);
+    }
     if (target === "IRT") {
       return I18N.fmtNum(lang, Math.round(v)) + " " + t("tomanWord");
     }
@@ -121,7 +134,8 @@
     const conv = convert(amount, cur);
     if (!conv) return null;
     const span = document.createElement("span");
-    span.className = TAG_CLASS;
+    span.className = TAG_CLASS + " c-" + (state.color || "green") +
+      (state.style === "sub" ? " s-sub" : state.style === "compact" ? " s-compact" : "");
     span.textContent = "≈ " + formatValue(conv.v, state.target === "IRT" ? "IRT" : state.target);
     let perStr;
     if (state.target === "IRT") {
@@ -189,7 +203,12 @@
       if (tag) {
         // قیمت اصلی (شاملِ نماد و پسوند) + تگ معادل داخل یک wrapper علامت‌گذاری‌شده
         const wrap = document.createElement("span");
-        wrap.className = WRAP_CLASS;
+        wrap.className = WRAP_CLASS + (state.style === "sub" ? " s-subwrap" : "");
+        if (state.style === "hover") {
+          // مدل هاور: بَج دیده نمی‌شود؛ معادل با نگه‌داشتن ماوس روی قیمت دیده می‌شود
+          tag.style.display = "none";
+          wrap.title = tag.textContent + " | " + tag.title;
+        }
         wrap.setAttribute(PROCESSED_ATTR, "1");
         wrap.setAttribute(ORIG_ATTR, matchText);
         wrap.appendChild(document.createTextNode(matchText));
@@ -320,6 +339,8 @@
         state.intl = response.intl || null;
         state.enabled = response.enabled !== false;
         state.target = (response.settings && response.settings.target) || "IRT";
+        state.style = (response.settings && response.settings.style) || "compact";
+        state.color = (response.settings && response.settings.color) || "green";
         lang = I18N.resolve(response.settings && response.settings.lang);
         t = I18N.makeT(lang);
       }
@@ -345,8 +366,13 @@
       const st = changes.settings.newValue || {};
       const newTarget = st.target || "IRT";
       const newLang = I18N.resolve(st.lang);
-      if (newTarget !== state.target || newLang !== lang) needRebuild = true;
+      const newStyle = st.style || "compact";
+      const newColor = st.color || "green";
+      if (newTarget !== state.target || newLang !== lang ||
+          newStyle !== state.style || newColor !== state.color) needRebuild = true;
       state.target = newTarget;
+      state.style = newStyle;
+      state.color = newColor;
       lang = newLang;
       t = I18N.makeT(lang);
     }

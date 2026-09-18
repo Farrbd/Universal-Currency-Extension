@@ -145,7 +145,7 @@ async function getEnabled() {
 
 async function getSettings() {
   const v = (await chrome.storage.local.get(SETTINGS_KEY))[SETTINGS_KEY];
-  return Object.assign({ target: "IRT", lang: "auto" }, v || {});
+  return Object.assign({ target: "IRT", lang: "auto", style: "compact", color: "green" }, v || {});
 }
 
 // ---------- آلارم‌ها ----------

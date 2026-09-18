@@ -28,22 +28,23 @@
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
-/* wrapper دور قیمت ارزی اصلی — جلوگیری از به‌هم‌ریختگی چیدمان */
+/* wrapper دور قیمت ارزی اصلی — جلوگیری از به‌هم‌ریختگی چیدمان.
+   min-width:0 + max-width:100% یعنی داخل flexهای تنگ (مثل کارت قیمت سایت‌ها)
+   اجازه دارد جمع شود و جای عناصر کناری مثل «/month» حفظ شود. */
 .usd-toman-wrap {
   unicode-bidi: isolate;
+  min-width: 0;
+  max-width: 100%;
 }
 
-/* بَج معادل تبدیل‌شده */
+/* بَج معادل تبدیل‌شده — محافظ چیدمان: هرگز از کادر بیرون نمی‌زند */
 .usd-toman-tag {
   display: inline-block;
-  color: #0b8a3e !important;
-  background: rgba(22, 163, 74, 0.12) !important;
-  border: 1px solid rgba(22, 163, 74, 0.45) !important;
   border-radius: 7px;
   padding: 0 7px;
   margin: 0 5px;
   font-family: "VazirmatnExt", "InterExt", Tahoma, "Segoe UI", Arial, sans-serif !important;
-  font-size: 0.82em;
+  font-size: min(0.82em, 15px);
   font-weight: 700;
   line-height: 1.7;
   letter-spacing: normal;
@@ -54,7 +55,51 @@
   cursor: help;
   text-shadow: none !important;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  max-width: min(15em, 100%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background .2s, border-color .2s;
 }
 .usd-toman-tag[dir="ltr"] {
   font-family: "InterExt", "VazirmatnExt", Tahoma, "Segoe UI", Arial, sans-serif !important;
+}
+
+/* ---- رنگ‌ها (قابل انتخاب از پاپآپ) ---- */
+.usd-toman-tag.c-green {
+  color: #0b8a3e !important;
+  background: rgba(22, 163, 74, 0.12) !important;
+  border: 1px solid rgba(22, 163, 74, 0.45) !important;
+}
+.usd-toman-tag.c-teal {
+  color: #0b7d78 !important;
+  background: rgba(32, 210, 202, 0.13) !important;
+  border: 1px solid rgba(32, 210, 202, 0.5) !important;
+}
+.usd-toman-tag.c-amber {
+  color: #8a6414 !important;
+  background: rgba(243, 179, 60, 0.15) !important;
+  border: 1px solid rgba(243, 179, 60, 0.55) !important;
+}
+.usd-toman-tag.c-neutral {
+  color: #5b6d80 !important;
+  background: rgba(148, 163, 184, 0.13) !important;
+  border: 1px solid rgba(148, 163, 184, 0.45) !important;
+}
+
+/* ---- مدل «زیر قیمت»: قیمت بالا، معادل زیرش (چیدمان افقی به‌هم نمی‌خورد) ---- */
+.usd-toman-wrap.s-subwrap {
+  display: inline-block;
+  vertical-align: baseline;
+}
+.usd-toman-tag.s-sub {
+  display: block;
+  margin: 3px 0 0;
+  font-size: 0.78em;
+  max-width: 100%;
+}
+
+/* ---- مدل «فشرده»: اعداد کوتاه K/M/B ---- */
+.usd-toman-tag.s-compact {
+  padding: 0 6px;
+  font-size: 0.78em;
 }

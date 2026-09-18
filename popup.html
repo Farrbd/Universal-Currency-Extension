@@ -33,6 +33,7 @@
     @keyframes rise { from{opacity:0; transform:translateY(10px) scale(.985)} }
     .rise { animation:rise .5s cubic-bezier(.22,.9,.3,1) backwards; }
     .d1{animation-delay:.05s}.d2{animation-delay:.1s}.d3{animation-delay:.15s}
+    .d3b{animation-delay:.17s}
     .d4{animation-delay:.2s}.d5{animation-delay:.25s}.d6{animation-delay:.3s}
 
     /* ===== افکت Beam — نور چرخان دور کادر (نسخهٔ CSS خالص border-beam) ===== */
@@ -102,6 +103,36 @@
     .switch input:checked + .slider { background:#16a34a; box-shadow:0 0 14px rgba(52,211,153,.45); }
     .switch input:checked + .slider::before { transform:translateX(-18px); }
     html[dir="ltr"] .switch input:checked + .slider::before { transform:translateX(18px); }
+
+    /* ===== شخصیسازی بَج ===== */
+    .seg { display:flex; gap:4px; margin-top:7px; }
+    .seg button {
+      flex:1; margin:0; padding:6px 2px; border-radius:8px;
+      background:rgba(148,163,184,.08); border:1px solid rgba(148,163,184,.16);
+      color:#b9c6d6; font-size:10px; font-weight:700; box-shadow:none;
+      transition:all .2s;
+    }
+    .seg button:hover { background:rgba(148,163,184,.16); transform:none; filter:none; }
+    .seg button.on {
+      background:rgba(32,210,202,.16); border-color:rgba(32,210,202,.6); color:#7ce8e1;
+      box-shadow:0 0 10px rgba(32,210,202,.15);
+    }
+    .seg.colors button { padding:7px 2px; }
+    .seg.colors button.on { background:rgba(148,163,184,.14); }
+    .sw { display:inline-block; width:11px; height:11px; border-radius:50%; vertical-align:-1px; margin-left:4px;
+      border:1px solid rgba(255,255,255,.25); }
+    .sw-green{background:#16a34a}.sw-teal{background:#20d2ca}.sw-amber{background:#f3b33c}.sw-neutral{background:#94a3b8}
+    .seg.colors button.on { color:#e6edf5; border-color:rgba(255,255,255,.35); }
+
+    .prev-box {
+      margin-top:8px; padding:11px 12px; border-radius:10px;
+      background:linear-gradient(140deg,#1a2233,#131c2b);
+      border:1px dashed rgba(148,163,184,.25);
+      display:flex; align-items:center; justify-content:center; gap:7px;
+      font-family:"Inter","Vazirmatn",sans-serif; font-size:15px; color:#e6edf5;
+      overflow:hidden;
+    }
+    .prev-box small { color:#7c8ea3; font-size:10px; }
 
     /* سلکت‌ها */
     select {
@@ -231,6 +262,23 @@
   <div class="card row target-row rise d3">
     <span class="lbl"><span class="ic">🎯</span><span data-i18n="convertTo">تبدیل به:</span></span>
     <select id="targetSel"></select>
+  </div>
+
+  <div class="card rise d3b">
+    <div class="conv-title" data-i18n="badgeTitle">🎨 نمایش بَج</div>
+    <div class="seg" id="styleSeg">
+      <button data-style="badge" data-i18n="stBadge">بَج</button>
+      <button data-style="sub" data-i18n="stSub">زیر قیمت</button>
+      <button data-style="compact" data-i18n="stCompact">فشرده</button>
+      <button data-style="hover" data-i18n="stHover">هاور</button>
+    </div>
+    <div class="seg colors" id="colorSeg">
+      <button data-color="green"><span class="sw sw-green"></span><span data-i18n="cGreen">سبز</span></button>
+      <button data-color="teal"><span class="sw sw-teal"></span><span data-i18n="cTeal">فیروزه‌ای</span></button>
+      <button data-color="amber"><span class="sw sw-amber"></span><span data-i18n="cAmber">کهربایی</span></button>
+      <button data-color="neutral"><span class="sw sw-neutral"></span><span data-i18n="cNeutral">خنثی</span></button>
+    </div>
+    <div class="prev-box" id="prevBox"></div>
   </div>
 
   <div class="card beam rise d4">

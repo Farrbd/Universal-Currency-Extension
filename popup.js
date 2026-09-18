@@ -21,6 +21,9 @@ const titleEl = document.getElementById("title");
 const subtitleEl = document.getElementById("subtitle");
 const hintBox = document.getElementById("hintBox");
 const verPill = document.getElementById("verPill");
+const styleSeg = document.getElementById("styleSeg");
+const colorSeg = document.getElementById("colorSeg");
+const prevBox = document.getElementById("prevBox");
 
 verPill.textContent = "v" + VER;
 
@@ -78,6 +81,8 @@ function applyLang(keepValues) {
   hintBox.innerHTML = t("hint1") + "<br>" + t("hint2");
   fillTargetSelect(keepValues);
   fillConvFrom(keepValues);
+  renderSegs();
+  renderPreview();
   renderRates();
   renderMeta();
   renderConv();
@@ -242,6 +247,55 @@ function renderConv() {
   }
   convSub.textContent = sub || "";
 }
+
+/* ---------- شخصیسازی بَج + پیشنمایش ---------- */
+const STYLES = ["badge", "sub", "compact", "hover"];
+const COLORS = ["green", "teal", "amber", "neutral"];
+
+function curStyle() { return (LAST.settings && LAST.settings.style) || "compact"; }
+function curColor() { return (LAST.settings && LAST.settings.color) || "green"; }
+
+function renderSegs() {
+  styleSeg.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.style === curStyle()));
+  colorSeg.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.color === curColor()));
+}
+
+function renderPreview() {
+  const st = curStyle(), co = curColor();
+  const tagCls = "usd-toman-tag c-" + co + (st === "sub" ? " s-sub" : st === "compact" ? " s-compact" : "");
+  let inner;
+  if (st === "hover") {
+    inner = '<span class="usd-toman-wrap" title="≈ ' + I18N.fmtNum(lang, 15198000) + ' ' + t("tomanWord") + '" style="border-bottom:1px dashed #7dd3fc;cursor:help">$30</span>';
+  } else if (st === "sub") {
+    inner = '<span class="usd-toman-wrap s-subwrap" style="text-align:center">$30' +
+            '<span class="' + tagCls + '" style="display:block;margin:3px 0 0">≈ ' + I18N.fmtNum(lang, 15198000) + " " + t("tomanWord") + "</span></span>";
+  } else {
+    const txt = (st === "compact" ? "≈ " + (15198000).toLocaleString(lang === "fa" ? "fa-IR" : "en-US", { notation: "compact", maximumFractionDigits: 1 }) + " " + t("tomanWord")
+                                   : "≈ " + I18N.fmtNum(lang, 15198000) + " " + t("tomanWord"));
+    inner = '$30 <span class="' + tagCls + '">' + txt + "</span>";
+  }
+  prevBox.innerHTML = inner + ' <small>/month</small>';
+}
+
+function saveSetting(key, val) {
+  chrome.storage.local.get("settings", (v) => {
+    const st = Object.assign({}, v.settings, {});
+    st[key] = val;
+    chrome.storage.local.set({ settings: st });
+    LAST.settings = st;
+    renderSegs();
+    renderPreview();
+  });
+}
+
+styleSeg.addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-style]");
+  if (b) saveSetting("style", b.dataset.style);
+});
+colorSeg.addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-color]");
+  if (b) saveSetting("color", b.dataset.color);
+});
 
 function syncManualRow() {
   manualRow.style.display = ((LAST.settings && LAST.settings.target) || "IRT") === "IRT" ? "flex" : "none";
